@@ -2,6 +2,7 @@ const API_KEY = 'AIzaSyBFBbH1SQkSZf1LJzammWAe2karh5mG9rQ';
 const BLOG_ID = '2756493429384988662';
 const postsPerPage = 5;
 let currentPage = 1;
+let pageTokens = [''];  // El primer token es una cadena vacía para la primera página
 
 function initClient() {
     gapi.client.init({
@@ -82,25 +83,29 @@ function updatePaginationButtons(result) {
     const prevButton = document.getElementById('prev-page');
     const nextButton = document.getElementById('next-page');
 
-    prevButton.disabled = !result.prevPageToken;
+    prevButton.disabled = currentPage === 1;
     nextButton.disabled = !result.nextPageToken;
 
     prevButton.onclick = () => {
-        currentPage--;
-        loadPosts();
+        if (currentPage > 1) {
+            currentPage--;
+            loadPosts();
+        }
     };
 
     nextButton.onclick = () => {
-        currentPage++;
-        loadPosts();
+        if (result.nextPageToken) {
+            currentPage++;
+            if (currentPage > pageTokens.length) {
+                pageTokens.push(result.nextPageToken);
+            }
+            loadPosts();
+        }
     };
 }
 
 function getPageToken() {
-    // Aquí deberías implementar la lógica para obtener el pageToken correcto
-    // basado en la página actual. Esto puede requerir almacenar los tokens
-    // de página anteriores o hacer múltiples solicitudes.
-    return null;
+    return pageTokens[currentPage - 1] || '';
 }
 
 gapi.load('client', initClient);
