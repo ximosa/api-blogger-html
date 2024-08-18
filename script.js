@@ -1,8 +1,8 @@
 const API_KEY = 'AIzaSyBFBbH1SQkSZf1LJzammWAe2karh5mG9rQ';
 const BLOG_ID = '2756493429384988662';
 const postsPerPage = 5;
-let currentPage = 1;
-let pageTokens = [''];  // El primer token es una cadena vacía para la primera página
+let currentPageToken = '';
+let nextPageToken = '';
 
 function initClient() {
     gapi.client.init({
@@ -17,7 +17,7 @@ function loadPosts() {
     gapi.client.blogger.posts.list({
         blogId: BLOG_ID,
         maxResults: postsPerPage,
-        pageToken: getPageToken()
+        pageToken: currentPageToken
     }).then(response => {
         const posts = response.result.items;
         const container = document.getElementById('posts-container');
@@ -28,7 +28,8 @@ function loadPosts() {
             container.appendChild(postElement);
         });
 
-        updatePaginationButtons(response.result);
+        nextPageToken = response.result.nextPageToken || '';
+        updatePaginationButtons();
     });
 }
 
@@ -79,31 +80,25 @@ function getFirstImage(content) {
     return null;
 }
 
-function updatePaginationButtons(result) {
+function updatePaginationButtons() {
     const prevButton = document.getElementById('prev-page');
     const nextButton = document.getElementById('next-page');
 
-    prevButton.disabled = currentPage === 1;
-    nextButton.disabled = !result.nextPageToken;
-
     prevButton.onclick = () => {
-        if (currentPage > 1) {
-            currentPage--;
-            loadPosts();
+        if (currentPageToken !== '') {
+            // Aquí deberíamos cargar la página anterior, pero la API de Blogger no proporciona
+            // una forma directa de hacerlo. En una implementación más compleja, necesitaríamos
+            // mantener un historial de tokens de página.
+            alert('Funcionalidad de página anterior no implementada');
         }
     };
 
     nextButton.onclick = () => {
-        if (result.nextPageToken) {
-            currentPage++;
-            pageTokens[currentPage - 1] = result.nextPageToken;
+        if (nextPageToken !== '') {
+            currentPageToken = nextPageToken;
             loadPosts();
         }
     };
-}
-
-function getPageToken() {
-    return pageTokens[currentPage - 1] || '';
 }
 
 gapi.load('client', initClient);
