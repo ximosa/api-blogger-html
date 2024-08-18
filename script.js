@@ -1,8 +1,7 @@
 const API_KEY = 'AIzaSyBFBbH1SQkSZf1LJzammWAe2karh5mG9rQ';
 const BLOG_ID = '2756493429384988662';
 const postsPerPage = 5;
-let nextPageToken = null;
-let prevPageToken = null;
+let currentPage = 1;
 
 function initClient() {
     gapi.client.init({
@@ -10,38 +9,25 @@ function initClient() {
         discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/blogger/v3/rest'],
     }).then(() => {
         loadPosts();
-    }).catch(error => {
-        console.error('Error initializing GAPI client:', error);
-        document.getElementById('posts-container').innerHTML = '<p>Error al cargar los posts. Por favor, intenta más tarde.</p>';
     });
 }
 
-function loadPosts(pageToken = null) {
-    document.getElementById('posts-container').innerHTML = '<p>Cargando posts...</p>';
-    
+function loadPosts() {
     gapi.client.blogger.posts.list({
         blogId: BLOG_ID,
         maxResults: postsPerPage,
-        pageToken: pageToken
+        pageToken: getPageToken()
     }).then(response => {
         const posts = response.result.items;
         const container = document.getElementById('posts-container');
         container.innerHTML = '';
 
-        if (posts && posts.length > 0) {
-            posts.forEach(post => {
-                const postElement = createPostElement(post);
-                container.appendChild(postElement);
-            });
-        } else {
-            container.innerHTML = '<p>No se encontraron posts.</p>';
-        }
+        posts.forEach(post => {
+            const postElement = createPostElement(post);
+            container.appendChild(postElement);
+        });
 
-        nextPageToken = response.result.nextPageToken || null;
-        updatePaginationButtons();
-    }).catch(error => {
-        console.error('Error loading posts:', error);
-        document.getElementById('posts-container').innerHTML = '<p>Error al cargar los posts. Por favor, intenta más tarde.</p>';
+        updatePaginationButtons(response.result);
     });
 }
 
@@ -92,29 +78,29 @@ function getFirstImage(content) {
     return null;
 }
 
-function updatePaginationButtons() {
+function updatePaginationButtons(result) {
     const prevButton = document.getElementById('prev-page');
     const nextButton = document.getElementById('next-page');
 
-    prevButton.disabled = !prevPageToken;
-    nextButton.disabled = !nextPageToken;
+    prevButton.disabled = !result.prevPageToken;
+    nextButton.disabled = !result.nextPageToken;
 
     prevButton.onclick = () => {
-        if (prevPageToken) {
-            loadPosts(prevPageToken);
-        }
+        currentPage--;
+        loadPosts();
     };
 
     nextButton.onclick = () => {
-        if (nextPageToken) {
-            prevPageToken = nextPageToken;
-            loadPosts(nextPageToken);
-        }
+        currentPage++;
+        loadPosts();
     };
 }
 
-gapi.load('client', initClient);
-    return pageTokens[currentPage - 1] || '';
+function getPageToken() {
+    // Aquí deberías implementar la lógica para obtener el pageToken correcto
+    // basado en la página actual. Esto puede requerir almacenar los tokens
+    // de página anteriores o hacer múltiples solicitudes.
+    return null;
 }
 
 gapi.load('client', initClient);
