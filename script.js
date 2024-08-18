@@ -1,7 +1,6 @@
 const API_KEY = 'AIzaSyBFBbH1SQkSZf1LJzammWAe2karh5mG9rQ';
 const BLOG_ID = '2756493429384988662';
 const postsPerPage = 5;
-let currentPageToken = '';
 let nextPageToken = '';
 
 function initClient() {
@@ -10,6 +9,7 @@ function initClient() {
         discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/blogger/v3/rest'],
     }).then(() => {
         loadPosts();
+        document.getElementById('load-more').addEventListener('click', loadPosts);
     });
 }
 
@@ -17,19 +17,18 @@ function loadPosts() {
     gapi.client.blogger.posts.list({
         blogId: BLOG_ID,
         maxResults: postsPerPage,
-        pageToken: currentPageToken
+        pageToken: nextPageToken
     }).then(response => {
         const posts = response.result.items;
         const container = document.getElementById('posts-container');
-        container.innerHTML = '';
-
+        
         posts.forEach(post => {
             const postElement = createPostElement(post);
             container.appendChild(postElement);
         });
 
         nextPageToken = response.result.nextPageToken || '';
-        updatePaginationButtons();
+        document.getElementById('load-more').style.display = nextPageToken ? 'block' : 'none';
     });
 }
 
@@ -78,27 +77,6 @@ function getFirstImage(content) {
         return img;
     }
     return null;
-}
-
-function updatePaginationButtons() {
-    const prevButton = document.getElementById('prev-page');
-    const nextButton = document.getElementById('next-page');
-
-    prevButton.onclick = () => {
-        if (currentPageToken !== '') {
-            // Aquí deberíamos cargar la página anterior, pero la API de Blogger no proporciona
-            // una forma directa de hacerlo. En una implementación más compleja, necesitaríamos
-            // mantener un historial de tokens de página.
-            alert('Funcionalidad de página anterior no implementada');
-        }
-    };
-
-    nextButton.onclick = () => {
-        if (nextPageToken !== '') {
-            currentPageToken = nextPageToken;
-            loadPosts();
-        }
-    };
 }
 
 gapi.load('client', initClient);
