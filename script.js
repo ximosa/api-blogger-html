@@ -1,8 +1,8 @@
 const API_KEY = 'AIzaSyBFBbH1SQkSZf1LJzammWAe2karh5mG9rQ';
 const BLOG_ID = '2756493429384988662';
 const postsPerPage = 5;
-let currentPage = 1;
-let pageTokens = [''];  // El primer token es una cadena vacía para la primera página
+let nextPageToken = null;
+let prevPageToken = null;
 
 function initClient() {
     gapi.client.init({
@@ -10,25 +10,38 @@ function initClient() {
         discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/blogger/v3/rest'],
     }).then(() => {
         loadPosts();
+    }).catch(error => {
+        console.error('Error initializing GAPI client:', error);
+        document.getElementById('posts-container').innerHTML = '<p>Error al cargar los posts. Por favor, intenta más tarde.</p>';
     });
 }
 
-function loadPosts() {
+function loadPosts(pageToken = null) {
+    document.getElementById('posts-container').innerHTML = '<p>Cargando posts...</p>';
+    
     gapi.client.blogger.posts.list({
         blogId: BLOG_ID,
         maxResults: postsPerPage,
-        pageToken: getPageToken()
+        pageToken: pageToken
     }).then(response => {
         const posts = response.result.items;
         const container = document.getElementById('posts-container');
         container.innerHTML = '';
 
-        posts.forEach(post => {
-            const postElement = createPostElement(post);
-            container.appendChild(postElement);
-        });
+        if (posts && posts.length > 0) {
+            posts.forEach(post => {
+                const postElement = createPostElement(post);
+                container.appendChild(postElement);
+            });
+        } else {
+            container.innerHTML = '<p>No se encontraron posts.</p>';
+        }
 
-        updatePaginationButtons(response.result);
+        nextPageToken = response.result.nextPageToken || null;
+        updatePaginationButtons();
+    }).catch(error => {
+        console.error('Error loading posts:', error);
+        document.getElementById('posts-container').innerHTML = '<p>Error al cargar los posts. Por favor, intenta más tarde.</p>';
     });
 }
 
@@ -79,32 +92,28 @@ function getFirstImage(content) {
     return null;
 }
 
-function updatePaginationButtons(result) {
+function updatePaginationButtons() {
     const prevButton = document.getElementById('prev-page');
     const nextButton = document.getElementById('next-page');
 
-    prevButton.disabled = currentPage === 1;
-    nextButton.disabled = !result.nextPageToken;
+    prevButton.disabled = !prevPageToken;
+    nextButton.disabled = !nextPageToken;
 
     prevButton.onclick = () => {
-        if (currentPage > 1) {
-            currentPage--;
-            loadPosts();
+        if (prevPageToken) {
+            loadPosts(prevPageToken);
         }
     };
 
     nextButton.onclick = () => {
-        if (result.nextPageToken) {
-            currentPage++;
-            if (currentPage > pageTokens.length) {
-                pageTokens.push(result.nextPageToken);
-            }
-            loadPosts();
+        if (nextPageToken) {
+            prevPageToken = nextPageToken;
+            loadPosts(nextPageToken);
         }
     };
 }
 
-function getPageToken() {
+gapi.load('client', initClient);
     return pageTokens[currentPage - 1] || '';
 }
 
