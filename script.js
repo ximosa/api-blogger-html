@@ -1,7 +1,7 @@
 const API_KEY = 'AIzaSyBFBbH1SQkSZf1LJzammWAe2karh5mG9rQ';
 const BLOG_ID = '2756493429384988662';
 const postsPerPage = 5;
-let nextPageToken = '';
+let currentPage = 1;
 
 function initClient() {
     gapi.client.init({
@@ -9,7 +9,6 @@ function initClient() {
         discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/blogger/v3/rest'],
     }).then(() => {
         loadPosts();
-        document.getElementById('load-more').addEventListener('click', loadPosts);
     });
 }
 
@@ -17,18 +16,18 @@ function loadPosts() {
     gapi.client.blogger.posts.list({
         blogId: BLOG_ID,
         maxResults: postsPerPage,
-        pageToken: nextPageToken
+        pageToken: getPageToken()
     }).then(response => {
         const posts = response.result.items;
         const container = document.getElementById('posts-container');
-        
+        container.innerHTML = '';
+
         posts.forEach(post => {
             const postElement = createPostElement(post);
             container.appendChild(postElement);
         });
 
-        nextPageToken = response.result.nextPageToken || '';
-        document.getElementById('load-more').style.display = nextPageToken ? 'block' : 'none';
+        updatePaginationButtons(response.result);
     });
 }
 
@@ -76,6 +75,31 @@ function getFirstImage(content) {
         img.style.height = 'auto';
         return img;
     }
+    return null;
+}
+
+function updatePaginationButtons(result) {
+    const prevButton = document.getElementById('prev-page');
+    const nextButton = document.getElementById('next-page');
+
+    prevButton.disabled = !result.prevPageToken;
+    nextButton.disabled = !result.nextPageToken;
+
+    prevButton.onclick = () => {
+        currentPage--;
+        loadPosts();
+    };
+
+    nextButton.onclick = () => {
+        currentPage++;
+        loadPosts();
+    };
+}
+
+function getPageToken() {
+    // Aquí deberías implementar la lógica para obtener el pageToken correcto
+    // basado en la página actual. Esto puede requerir almacenar los tokens
+    // de página anteriores o hacer múltiples solicitudes.
     return null;
 }
 
