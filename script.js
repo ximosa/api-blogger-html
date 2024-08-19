@@ -2,14 +2,15 @@ const API_KEY = 'AIzaSyBFBbH1SQkSZf1LJzammWAe2karh5mG9rQ'; // Reemplaza con tu A
 const BLOG_ID = '2756493429384988662'; // Reemplaza con tu Blog ID
 const postsPerPage = 5;
 
-let nextPageToken = null;
-let prevPageToken = null;
+let currentPage = 0;
+let loadedPostIds = []; // Array para almacenar los IDs de los posts cargados
+let nextPageToken = null; 
 
 // Función para desplazar al inicio de la página
 function scrollToTop() {
   window.scrollTo({
     top: 0,
-    behavior: 'smooth'
+    behavior: 'smooth' 
   });
 }
 
@@ -18,39 +19,86 @@ function initClient() {
     apiKey: API_KEY,
     discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/blogger/v3/rest'],
   }).then(() => {
-    loadPosts(nextPageToken);  //  <- Pasar nextPageToken aquí
+    loadPosts();
   });
 }
 
-function loadPosts(pageToken = null) { //  <-  Aquí se agregó pageToken
-  gapi.client.blogger.posts.list({
+function loadPosts() {
+  const requestParams = {
     blogId: BLOG_ID,
-    maxResults: postsPerPage,
-    pageToken: pageToken //  <-  Usar pageToken si se proporciona
-  }).then(response => {
-    const posts = response.result.items;
-    const container = document.getElementById('posts-container');
-    container.innerHTML = '';
+    maxResults: postsPerPage
+  };
 
-    if (posts && posts.length > 0) {
-      posts.forEach(post => {
-        const postElement = createPostElement(post);
-        container.appendChild(postElement);
-      });
-    } else {
-      container.innerHTML = '<p>No se encontraron publicaciones.</p>';
-    }
+  if (nextPageToken) {
+    requestParams.pageToken = nextPageToken;
+  }
 
-    // Actualizar los tokens de paginación
-    nextPageToken = response.result.nextPageToken;
-    prevPageToken = response.result.prevPageToken;
+  gapi.client.blogger.posts.list(requestParams)
+    .then(response => {
+      const posts = response.result.items;
+      const container = document.getElementById('posts-container');
+      container.innerHTML = '';
 
-    // Actualizar botones DESPUÉS de actualizar los tokens
-    updatePaginationButtons();
+      if (posts && posts.length > 0) {
+        const currentPostIds = []; 
+
+        posts.forEach(post => {
+          currentPostIds.push(post.id); 
+          const postElement = createPostElement(post);
+          container.appendChild(postElement);
+        });
+
+        loadedPostIds[currentPage] = currentPostIds; 
+
+        nextPageToken = response.result.nextPageToken;
+        updatePaginationButtons(); 
+      } else {
+        container.innerHTML = '<p>No se encontraron publicaciones.</p>';
+      }
+
+      scrollToTop();
+    });
+}
+
+function updatePaginationButtons() {
+  const prevButton = document.getElementById('prev-page');
+  const nextButton = document.getElementById('next-page');
+
+  prevButton.disabled = currentPage === 0;
+  nextButton.disabled = !nextPageToken;
+
+  prevButton.onclick = () => {
+    currentPage--;
+    loadPreviousPage(); 
+  };
+
+  nextButton.onclick = () => {
+    currentPage++;
+    loadPosts();
+  };
+}
+
+function loadPreviousPage() {
+  const prevPagePostIds = loadedPostIds[currentPage];
+  const container = document.getElementById('posts-container');
+  container.innerHTML = '';
+
+  if (prevPagePostIds) {
+    prevPagePostIds.forEach(postId => {
+      getPostById(postId)
+        .then(post => {
+          const postElement = createPostElement(post);
+          container.appendChild(postElement);
+        })
+        .catch(error => {
+          console.error("Error al cargar el post:", error);
+        });
+    });
 
     scrollToTop();
-  });
+  }
 }
+
 
 function createPostElement(post) {
   const postDiv = document.createElement('div');
@@ -99,21 +147,13 @@ function getFirstImage(content) {
   return null;
 }
 
-function updatePaginationButtons() {
-  const prevButton = document.getElementById('prev-page');
-  const nextButton = document.getElementById('next-page');
-
-  // Habilitar/Deshabilitar botones 
-  prevButton.disabled = !prevPageToken;
-  nextButton.disabled = !nextPageToken;
-
-  prevButton.onclick = () => {
-    loadPosts(prevPageToken); //  <- Pasar prevPageToken
-  };
-
-  nextButton.onclick = () => {
-    loadPosts(nextPageToken); //  <- Pasar nextPageToken
-  };
+// Función para obtener un post por ID 
+function getPostById(postId) {
+  return new Promise((resolve, reject) => {
+    gapi.client.blogger.posts.getById({ blogId: BLOG_ID, postId: postId })
+      .then(response => resolve(response.result))
+      .catch(error => reject(error));
+  });
 }
 
 gapi.load('client', initClient);
