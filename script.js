@@ -91,7 +91,9 @@ function updatePaginationButtons(result) {
   nextPageToken = result.nextPageToken;
   prevPageToken = result.prevPageToken;
 
-
+  // Habilitar/Deshabilitar botones DESPUÉS de cargar los posts
+  prevButton.disabled = !prevPageToken;
+  nextButton.disabled = !nextPageToken;
 
   prevButton.onclick = () => {
     currentPage--;
