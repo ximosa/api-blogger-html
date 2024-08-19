@@ -147,13 +147,12 @@ function getFirstImage(content) {
   return null;
 }
 
-// Función para obtener un post por ID 
+// Función para obtener un post por ID
 function getPostById(postId) {
   return new Promise((resolve, reject) => {
-    gapi.client.blogger.posts.getById({ blogId: BLOG_ID, postId: postId })
+    gapi.client.blogger.posts.get({ blogId: BLOG_ID, postId: postId }) // Usar posts.get
       .then(response => resolve(response.result))
       .catch(error => reject(error));
   });
 }
-
 gapi.load('client', initClient);
