@@ -4,7 +4,6 @@ const postsPerPage = 5;
 
 let nextPageToken = null;
 let prevPageToken = null;
-let currentPage = 1; 
 
 // Función para desplazar al inicio de la página
 function scrollToTop() {
@@ -23,11 +22,11 @@ function initClient() {
   });
 }
 
-function loadPosts() {
+function loadPosts(token) {
   gapi.client.blogger.posts.list({
     blogId: BLOG_ID,
     maxResults: postsPerPage,
-    pageToken: nextPageToken || prevPageToken,
+    pageToken: token // Usar el token proporcionado o null para la primera página
   }).then(response => {
     const posts = response.result.items;
     const container = document.getElementById('posts-container');
@@ -42,7 +41,11 @@ function loadPosts() {
       container.innerHTML = '<p>No se encontraron publicaciones.</p>';
     }
 
-    updatePaginationButtons(response.result); 
+    // Actualizar los tokens de paginación
+    nextPageToken = response.result.nextPageToken;
+    prevPageToken = response.result.prevPageToken;
+
+    updatePaginationButtons();
 
     // Desplazar hacia arriba después de cargar nuevos posts
     scrollToTop();
@@ -96,26 +99,20 @@ function getFirstImage(content) {
   return null;
 }
 
-function updatePaginationButtons(result) {
+function updatePaginationButtons() {
   const prevButton = document.getElementById('prev-page');
   const nextButton = document.getElementById('next-page');
-
-  nextPageToken = result.nextPageToken;
-  prevPageToken = result.prevPageToken;
 
   // Habilitar/Deshabilitar botones DESPUÉS de cargar los posts
   prevButton.disabled = !prevPageToken;
   nextButton.disabled = !nextPageToken;
 
   prevButton.onclick = () => {
-    currentPage--;
-    loadPosts();
-    scrollToTop(); // Desplazar al inicio al pulsar "Anterior"
+    loadPosts(prevPageToken); 
   };
 
   nextButton.onclick = () => {
-    currentPage++;
-    loadPosts();
+    loadPosts(nextPageToken);
   };
 }
 
