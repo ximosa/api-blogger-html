@@ -104,4 +104,3 @@ function getPageToken() {
 }
 
 gapi.load('client', initClient);
-
