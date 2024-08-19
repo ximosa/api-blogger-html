@@ -5,6 +5,7 @@ const postsPerPage = 5;
 let currentPage = 0;
 let loadedPostIds = []; // Array para almacenar los IDs de los posts cargados
 let nextPageToken = null; 
+let loadedPagesCount = 1; // Iniciamos el contador en 1 (la primera página ya está cargada)
 
 // Función para desplazar al inicio de la página
 function scrollToTop() {
@@ -51,6 +52,8 @@ function loadPosts() {
         loadedPostIds[currentPage] = currentPostIds; 
 
         nextPageToken = response.result.nextPageToken;
+        // Incrementar el contador al cargar una nueva página
+        loadedPagesCount++; 
         updatePaginationButtons(); 
       } else {
         container.innerHTML = '<p>No se encontraron publicaciones.</p>';
@@ -64,11 +67,14 @@ function updatePaginationButtons() {
   const prevButton = document.getElementById('prev-page');
   const nextButton = document.getElementById('next-page');
 
-  prevButton.disabled = currentPage === 0;
+  // Deshabilitar "Anterior" si no hay páginas anteriores cargadas
+  prevButton.disabled = loadedPagesCount <= 1; 
   nextButton.disabled = !nextPageToken;
 
   prevButton.onclick = () => {
     currentPage--;
+    // Decrementar el contador al cargar una página anterior
+    loadedPagesCount--; 
     loadPreviousPage(); 
   };
 
