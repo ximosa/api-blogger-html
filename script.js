@@ -1,5 +1,6 @@
-const API_KEY = 'AIzaSyBFBbH1SQkSZf1LJzammWAe2karh5mG9rQ';
-const BLOG_ID = '2756493429384988662';
+--- START OF FILE script.js ---
+const API_KEY = 'AIzaSyBFBbH1SQkSZf1LJzammWAe2karh5mG9rQ'; // Reemplaza con tu API Key
+const BLOG_ID = '2756493429384988662'; // Reemplaza con tu Blog ID
 const postsPerPage = 5;
 
 let nextPageToken = null;
@@ -24,61 +25,64 @@ function loadPosts() {
     const container = document.getElementById('posts-container');
     container.innerHTML = '';
 
-    posts.forEach(post => {
-      const postElement = createPostElement(post);
-      container.appendChild(postElement);
-    });
+    if (posts && posts.length > 0) {
+      posts.forEach(post => {
+        const postElement = createPostElement(post);
+        container.appendChild(postElement);
+      });
+    } else {
+      container.innerHTML = '<p>No se encontraron publicaciones.</p>';
+    }
 
     updatePaginationButtons(response.result);
   });
 }
 
-
 function createPostElement(post) {
-    const postDiv = document.createElement('div');
-    postDiv.className = 'post';
+  const postDiv = document.createElement('div');
+  postDiv.className = 'post';
 
-    const title = document.createElement('h2');
-    const titleLink = document.createElement('a');
-    titleLink.href = `post.html?id=${post.id}`;
-    titleLink.textContent = post.title;
-    titleLink.title = post.title;
-    title.appendChild(titleLink);
+  const title = document.createElement('h2');
+  const titleLink = document.createElement('a');
+  titleLink.href = `post.html?id=${post.id}`; 
+  titleLink.textContent = post.title;
+  titleLink.title = post.title;
+  title.appendChild(titleLink);
 
-    const content = document.createElement('p');
-    content.innerHTML = getExcerpt(post.content);
+  const content = document.createElement('p');
+  content.innerHTML = getExcerpt(post.content);
 
-    const image = getFirstImage(post.content);
-    if (image) {
-        const imgLink = document.createElement('a');
-        imgLink.href = `post.html?id=${post.id}`;
-        imgLink.title = post.title;
-        imgLink.appendChild(image);
-        postDiv.appendChild(imgLink);
-    }
+  const image = getFirstImage(post.content);
+  if (image) {
+    const imgLink = document.createElement('a');
+    imgLink.href = `post.html?id=${post.id}`; 
+    imgLink.title = post.title;
+    imgLink.appendChild(image);
+    postDiv.appendChild(imgLink);
+  }
 
-    postDiv.appendChild(title);
-    postDiv.appendChild(content);
+  postDiv.appendChild(title);
+  postDiv.appendChild(content);
 
-    return postDiv;
+  return postDiv;
 }
 
 function getExcerpt(content) {
-    const div = document.createElement('div');
-    div.innerHTML = content;
-    return div.textContent.slice(0, 150) + '...';
+  const div = document.createElement('div');
+  div.innerHTML = content;
+  return div.textContent.slice(0, 150) + '...';
 }
 
 function getFirstImage(content) {
-    const div = document.createElement('div');
-    div.innerHTML = content;
-    const img = div.querySelector('img');
-    if (img) {
-        img.style.maxWidth = '200px';
-        img.style.height = 'auto';
-        return img;
-    }
-    return null;
+  const div = document.createElement('div');
+  div.innerHTML = content;
+  const img = div.querySelector('img');
+  if (img) {
+    img.style.maxWidth = '200px';
+    img.style.height = 'auto';
+    return img;
+  }
+  return null;
 }
 
 function updatePaginationButtons(result) {
@@ -90,6 +94,15 @@ function updatePaginationButtons(result) {
 
   prevButton.disabled = !prevPageToken;
   nextButton.disabled = !nextPageToken;
+
+  // Asegura que loadPosts se llame después de actualizar los tokens 
+  prevButton.onclick = () => {
+    loadPosts();
+  };
+
+  nextButton.onclick = () => {
+    loadPosts(); 
+  };
 }
 
 gapi.load('client', initClient);
