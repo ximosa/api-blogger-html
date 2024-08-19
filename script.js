@@ -9,7 +9,7 @@ let prevPageToken = null;
 function scrollToTop() {
   window.scrollTo({
     top: 0,
-    behavior: 'smooth' 
+    behavior: 'smooth'
   });
 }
 
@@ -22,11 +22,11 @@ function initClient() {
   });
 }
 
-function loadPosts(token) {
+function loadPosts(pageToken = null) { //  <-  Aquí se agregó pageToken
   gapi.client.blogger.posts.list({
     blogId: BLOG_ID,
     maxResults: postsPerPage,
-    pageToken: token // Usar el token proporcionado o null para la primera página
+    pageToken: pageToken //  <-  Usar pageToken si se proporciona
   }).then(response => {
     const posts = response.result.items;
     const container = document.getElementById('posts-container');
@@ -45,9 +45,9 @@ function loadPosts(token) {
     nextPageToken = response.result.nextPageToken;
     prevPageToken = response.result.prevPageToken;
 
+    // Actualizar botones DESPUÉS de actualizar los tokens
     updatePaginationButtons();
 
-    // Desplazar hacia arriba después de cargar nuevos posts
     scrollToTop();
   });
 }
@@ -103,16 +103,16 @@ function updatePaginationButtons() {
   const prevButton = document.getElementById('prev-page');
   const nextButton = document.getElementById('next-page');
 
-  // Habilitar/Deshabilitar botones DESPUÉS de cargar los posts
+  // Habilitar/Deshabilitar botones 
   prevButton.disabled = !prevPageToken;
   nextButton.disabled = !nextPageToken;
 
   prevButton.onclick = () => {
-    loadPosts(prevPageToken); 
+    loadPosts(prevPageToken); //  <- Pasar prevPageToken
   };
 
   nextButton.onclick = () => {
-    loadPosts(nextPageToken);
+    loadPosts(nextPageToken); //  <- Pasar nextPageToken
   };
 }
 
