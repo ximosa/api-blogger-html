@@ -4,6 +4,7 @@ const postsPerPage = 5;
 
 let nextPageToken = null;
 let prevPageToken = null;
+let currentPage = 1; 
 
 function initClient() {
   gapi.client.init({
@@ -33,10 +34,9 @@ function loadPosts() {
       container.innerHTML = '<p>No se encontraron publicaciones.</p>';
     }
 
-    updatePaginationButtons(response.result);
+    updatePaginationButtons(response.result); 
   });
 }
-
 function createPostElement(post) {
   const postDiv = document.createElement('div');
   postDiv.className = 'post';
@@ -91,19 +91,19 @@ function updatePaginationButtons(result) {
   nextPageToken = result.nextPageToken;
   prevPageToken = result.prevPageToken;
 
+  // Habilitar/Deshabilitar botones DESPUÉS de cargar los posts
   prevButton.disabled = !prevPageToken;
   nextButton.disabled = !nextPageToken;
 
   prevButton.onclick = () => {
-    currentPage--; // Decrementa la página actual
+    currentPage--;
     loadPosts();
   };
 
   nextButton.onclick = () => {
-    currentPage++; // Incrementa la página actual
-    loadPosts(); 
+    currentPage++;
+    loadPosts();
   };
 }
-
 
 gapi.load('client', initClient);
