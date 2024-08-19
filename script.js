@@ -18,7 +18,7 @@ function initClient() {
     apiKey: API_KEY,
     discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/blogger/v3/rest'],
   }).then(() => {
-    loadPosts();
+    loadPosts(nextPageToken);  //  <- Pasar nextPageToken aquí
   });
 }
 
