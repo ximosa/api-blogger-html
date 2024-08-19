@@ -6,6 +6,14 @@ let nextPageToken = null;
 let prevPageToken = null;
 let currentPage = 1; 
 
+// Función para desplazar al inicio de la página
+function scrollToTop() {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth' 
+  });
+}
+
 function initClient() {
   gapi.client.init({
     apiKey: API_KEY,
@@ -35,8 +43,12 @@ function loadPosts() {
     }
 
     updatePaginationButtons(response.result); 
+
+    // Desplazar hacia arriba después de cargar nuevos posts
+    scrollToTop();
   });
 }
+
 function createPostElement(post) {
   const postDiv = document.createElement('div');
   postDiv.className = 'post';
@@ -98,6 +110,7 @@ function updatePaginationButtons(result) {
   prevButton.onclick = () => {
     currentPage--;
     loadPosts();
+    scrollToTop(); // Desplazar al inicio al pulsar "Anterior"
   };
 
   nextButton.onclick = () => {
