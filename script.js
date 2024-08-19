@@ -1,35 +1,38 @@
 const API_KEY = 'AIzaSyBFBbH1SQkSZf1LJzammWAe2karh5mG9rQ';
 const BLOG_ID = '2756493429384988662';
 const postsPerPage = 5;
-let currentPage = 1;
+
+let nextPageToken = null;
+let prevPageToken = null;
 
 function initClient() {
-    gapi.client.init({
-        apiKey: API_KEY,
-        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/blogger/v3/rest'],
-    }).then(() => {
-        loadPosts();
-    });
+  gapi.client.init({
+    apiKey: API_KEY,
+    discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/blogger/v3/rest'],
+  }).then(() => {
+    loadPosts();
+  });
 }
 
 function loadPosts() {
-    gapi.client.blogger.posts.list({
-        blogId: BLOG_ID,
-        maxResults: postsPerPage,
-        pageToken: getPageToken()
-    }).then(response => {
-        const posts = response.result.items;
-        const container = document.getElementById('posts-container');
-        container.innerHTML = '';
+  gapi.client.blogger.posts.list({
+    blogId: BLOG_ID,
+    maxResults: postsPerPage,
+    pageToken: nextPageToken || prevPageToken,
+  }).then(response => {
+    const posts = response.result.items;
+    const container = document.getElementById('posts-container');
+    container.innerHTML = '';
 
-        posts.forEach(post => {
-            const postElement = createPostElement(post);
-            container.appendChild(postElement);
-        });
-
-        updatePaginationButtons(response.result);
+    posts.forEach(post => {
+      const postElement = createPostElement(post);
+      container.appendChild(postElement);
     });
+
+    updatePaginationButtons(response.result);
+  });
 }
+
 
 function createPostElement(post) {
     const postDiv = document.createElement('div');
@@ -79,28 +82,15 @@ function getFirstImage(content) {
 }
 
 function updatePaginationButtons(result) {
-    const prevButton = document.getElementById('prev-page');
-    const nextButton = document.getElementById('next-page');
+  const prevButton = document.getElementById('prev-page');
+  const nextButton = document.getElementById('next-page');
 
-    prevButton.disabled = !result.prevPageToken;
-    nextButton.disabled = !result.nextPageToken;
+  nextPageToken = result.nextPageToken;
+  prevPageToken = result.prevPageToken;
 
-    prevButton.onclick = () => {
-        currentPage--;
-        loadPosts();
-    };
-
-    nextButton.onclick = () => {
-        currentPage++;
-        loadPosts();
-    };
-}
-
-function getPageToken() {
-    // Aquí deberías implementar la lógica para obtener el pageToken correcto
-    // basado en la página actual. Esto puede requerir almacenar los tokens
-    // de página anteriores o hacer múltiples solicitudes.
-    return null;
+  prevButton.disabled = !prevPageToken;
+  nextButton.disabled = !nextPageToken;
 }
 
 gapi.load('client', initClient);
+--- END OF FILE script.js ---
