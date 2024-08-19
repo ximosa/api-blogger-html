@@ -64,7 +64,7 @@ function updatePaginationButtons() {
   const prevButton = document.getElementById('prev-page');
   const nextButton = document.getElementById('next-page');
 
-  prevButton.disabled = currentPage === 0;
+  // prevButton.disabled = currentPage === 0;
   nextButton.disabled = !nextPageToken;
 
   prevButton.onclick = () => {
