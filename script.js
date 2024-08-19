@@ -1,4 +1,3 @@
---- START OF FILE script.js ---
 const API_KEY = 'AIzaSyBFBbH1SQkSZf1LJzammWAe2karh5mG9rQ'; // Reemplaza con tu API Key
 const BLOG_ID = '2756493429384988662'; // Reemplaza con tu Blog ID
 const postsPerPage = 5;
@@ -106,4 +105,3 @@ function updatePaginationButtons(result) {
 }
 
 gapi.load('client', initClient);
---- END OF FILE script.js ---
