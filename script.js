@@ -94,14 +94,16 @@ function updatePaginationButtons(result) {
   prevButton.disabled = !prevPageToken;
   nextButton.disabled = !nextPageToken;
 
-  // Asegura que loadPosts se llame después de actualizar los tokens 
   prevButton.onclick = () => {
+    currentPage--; // Decrementa la página actual
     loadPosts();
   };
 
   nextButton.onclick = () => {
+    currentPage++; // Incrementa la página actual
     loadPosts(); 
   };
 }
+
 
 gapi.load('client', initClient);
