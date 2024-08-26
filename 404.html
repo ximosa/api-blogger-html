@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Redireccionando...</title>
+  <script>
+    // Obtener la URL actual
+    var currentUrl = window.location.pathname;
+
+    // Eliminar la barra inicial (/) si existe
+    currentUrl = currentUrl.replace(/^\//, '');
+
+    // Redirigir a la URL con el parámetro 'id'
+    window.location.href = 'post.html?id=' + encodeURIComponent(currentUrl);
+  </script>
+</head>
+<body>
+</body>
+</html>
