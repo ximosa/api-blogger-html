@@ -34,6 +34,7 @@ function displayPost(post) {
     container.innerHTML = `
         <h1>${post.title}</h1>
         <div class="post-content">${post.content}</div>
+ <a href="post.html?id=${post.id}">Enlace para compartir</a>
     `;
 }
 
