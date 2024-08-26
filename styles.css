@@ -92,3 +92,31 @@ button:disabled {
     margin: 4px 2px;
     cursor: pointer;
 }
+select {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 16px;
+  color: #333;
+  appearance: none; /* Elimina estilos por defecto */
+  -webkit-appearance: none; /* Para navegadores WebKit */
+}
+
+/* Flecha personalizada */
+select::-ms-expand { 
+  display: none; 
+}
+
+select option {
+  padding: 4px;
+}
+
+/* Hover y foco */
+select:hover,
+select:focus {
+  border-color: #999;
+  outline: none;
+}
+
+

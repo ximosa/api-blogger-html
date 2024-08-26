@@ -3,11 +3,11 @@ const BLOG_ID = '2756493429384988662'; // Reemplaza con tu Blog ID
 const postsPerPage = 5;
 
 let currentPage = 0;
-let loadedPostIds = []; // Array para almacenar los IDs de los posts cargados
+let loadedPostIds = []; 
 let nextPageToken = null; 
-let loadedPagesCount = 1; // Iniciamos el contador en 1 (la primera página ya está cargada)
+let loadedPagesCount = 1; 
+let categories = []; 
 
-// Función para desplazar al inicio de la página
 function scrollToTop() {
   window.scrollTo({
     top: 0,
@@ -20,11 +20,55 @@ function initClient() {
     apiKey: API_KEY,
     discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/blogger/v3/rest'],
   }).then(() => {
-    loadPosts();
+    loadCategories(); // Cargar categorías al inicio
+    loadPosts(); 
   });
 }
 
-function loadPosts() {
+// Función para cargar las categorías
+function loadCategories() {
+  gapi.client.blogger.posts.list({
+    blogId: BLOG_ID,
+    fields: 'items(labels)' 
+  }).then(response => {
+    const allLabels = new Set();
+    response.result.items.forEach(post => {
+      post.labels.forEach(label => allLabels.add(label));
+    });
+    categories = Array.from(allLabels);
+console.log(categories);
+    populateCategoryDropdown(); 
+  }).catch(error => {
+    console.error('Error al obtener las categorías:', error);
+  });
+}
+
+
+// Función para llenar el menú desplegable de categorías
+function populateCategoryDropdown() {
+  const categorySelect = document.getElementById('category-select');
+  categorySelect.innerHTML = '<option value="">Todas las categorías</option>'; 
+
+  categories.forEach(category => { // "category" ya es el nombre de la categoría
+    const option = document.createElement('option');
+    option.value = category; // Asignar directamente "category"
+    option.text = category;  // Asignar directamente "category"
+    categorySelect.add(option);
+  });
+
+  // Agregar evento al cambiar la selección
+  categorySelect.addEventListener('change', () => {
+    const selectedCategory = categorySelect.value;
+    currentPage = 0; 
+    nextPageToken = null;
+    loadedPostIds = [];
+    loadedPagesCount = 1;
+    loadPosts(selectedCategory); 
+  });
+}
+
+// Modificar loadPosts para aceptar una categoría opcional
+function loadPosts(category = null) { 
   const requestParams = {
     blogId: BLOG_ID,
     maxResults: postsPerPage
@@ -32,6 +76,11 @@ function loadPosts() {
 
   if (nextPageToken) {
     requestParams.pageToken = nextPageToken;
+  }
+
+  // Agregar filtro por categoría si se proporciona
+  if (category) {
+    requestParams.labels = category;
   }
 
   gapi.client.blogger.posts.list(requestParams)
@@ -52,7 +101,6 @@ function loadPosts() {
         loadedPostIds[currentPage] = currentPostIds; 
 
         nextPageToken = response.result.nextPageToken;
-        // Incrementar el contador al cargar una nueva página
         loadedPagesCount++; 
         updatePaginationButtons(); 
       } else {
@@ -62,6 +110,7 @@ function loadPosts() {
       scrollToTop();
     });
 }
+
 
 function updatePaginationButtons() {
   const prevButton = document.getElementById('prev-page');
